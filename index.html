@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小朋友学英语</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: #FFF8F0; min-height: 100vh; }
+
+  .header { background: linear-gradient(135deg, #FF8C69 0%, #FFB347 100%); padding: 20px 16px 16px; text-align: center; }
+  .header h1 { font-size: 22px; font-weight: 700; color: #fff; letter-spacing: 2px; text-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+  .header p { font-size: 13px; color: rgba(255,255,255,0.85); margin-top: 4px; }
+
+  .cat-scroll { display: flex; gap: 10px; padding: 14px 16px; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+  .cat-scroll::-webkit-scrollbar { display: none; }
+  .cat-btn { flex: 0 0 auto; padding: 7px 18px; border-radius: 20px; border: 2px solid #FFB347; background: #fff; color: #E07A30; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all 0.15s; }
+  .cat-btn.active { background: #FF8C69; border-color: #FF8C69; color: #fff; }
+
+  .tab-row { display: flex; margin: 0 16px 14px; border-radius: 12px; overflow: hidden; border: 2px solid #FFD0A8; }
+  .tab { flex: 1; padding: 10px; text-align: center; font-size: 14px; font-weight: 600; background: #fff; color: #C07040; cursor: pointer; transition: all 0.15s; }
+  .tab.active { background: #FF8C69; color: #fff; }
+
+  /* Learn panel */
+  .stars { display: flex; justify-content: center; gap: 8px; margin-bottom: 12px; padding: 0 16px; }
+  .star { font-size: 22px; opacity: 0.2; transition: all 0.3s; }
+  .star.lit { opacity: 1; transform: scale(1.15); }
+
+  .word-card { margin: 0 16px 14px; background: #fff; border-radius: 24px; padding: 28px 20px 22px; text-align: center; box-shadow: 0 4px 20px rgba(255,140,105,0.18); }
+  .word-emoji { font-size: 90px; line-height: 1; display: block; margin-bottom: 16px; }
+  .word-en { font-size: 38px; font-weight: 800; color: #E07A30; letter-spacing: 3px; margin-bottom: 6px; }
+  .word-zh { font-size: 20px; color: #888; margin-bottom: 6px; }
+  .word-hint { font-size: 13px; color: #bbb; font-style: italic; margin-bottom: 18px; }
+  .speak-btn { display: inline-flex; align-items: center; gap: 8px; background: #FF8C69; color: #fff; font-size: 16px; font-weight: 600; padding: 12px 28px; border-radius: 24px; border: none; cursor: pointer; box-shadow: 0 3px 12px rgba(255,140,105,0.4); active-transform: scale(0.97); }
+  .speak-btn:active { transform: scale(0.96); }
+
+  .nav-row { display: flex; align-items: center; justify-content: center; gap: 20px; margin: 0 16px 20px; }
+  .nav-btn { width: 52px; height: 52px; border-radius: 50%; border: 2px solid #FFD0A8; background: #fff; font-size: 22px; color: #E07A30; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(255,140,105,0.15); }
+  .nav-btn:active { transform: scale(0.93); background: #FFF0E8; }
+  .nav-counter { font-size: 15px; color: #C07040; font-weight: 600; min-width: 60px; text-align: center; }
+
+  /* Quiz panel */
+  .quiz-card { margin: 0 16px 14px; background: #fff; border-radius: 24px; padding: 24px 16px 20px; box-shadow: 0 4px 20px rgba(255,140,105,0.18); text-align: center; }
+  .quiz-label { font-size: 14px; color: #aaa; margin-bottom: 14px; }
+  .quiz-emoji { font-size: 80px; display: block; margin-bottom: 18px; }
+  .quiz-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .quiz-opt { padding: 14px 8px; border-radius: 14px; border: 2px solid #FFD0A8; background: #FFF8F0; font-size: 15px; font-weight: 700; color: #C07040; cursor: pointer; transition: all 0.15s; }
+  .quiz-opt:active { transform: scale(0.96); }
+  .quiz-opt.correct { background: #E8F8E8; border-color: #6DC76D; color: #2A7A2A; }
+  .quiz-opt.wrong { background: #FDECEA; border-color: #F07070; color: #A03030; }
+  .quiz-opt .opt-zh { display: block; font-size: 12px; font-weight: 400; color: #aaa; margin-top: 3px; }
+  .quiz-opt.correct .opt-zh { color: #4A9A4A; }
+  .quiz-opt.wrong .opt-zh { color: #C05050; }
+  .feedback { margin-top: 14px; font-size: 16px; font-weight: 700; min-height: 26px; }
+  .feedback.ok { color: #2A7A2A; }
+  .feedback.no { color: #A03030; }
+
+  .progress-bar { height: 6px; background: #FFD0A8; margin: 0 16px 16px; border-radius: 3px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #FF8C69, #FFB347); border-radius: 3px; transition: width 0.4s; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌟 小朋友学英语</h1>
+  <p>一起来认识英文单词吧！</p>
+</div>
+
+<div class="cat-scroll" id="cats"></div>
+
+<div class="tab-row">
+  <div class="tab active" onclick="switchTab('learn')">📖 学单词</div>
+  <div class="tab" onclick="switchTab('quiz')">🎯 小测验</div>
+</div>
+
+<div id="learn-panel">
+  <div class="stars" id="stars"></div>
+  <div class="progress-bar"><div class="progress-fill" id="progress" style="width:0%"></div></div>
+  <div class="word-card">
+    <span class="word-emoji" id="emoji"></span>
+    <div class="word-en" id="word-en"></div>
+    <div class="word-zh" id="word-zh"></div>
+    <div class="word-hint" id="word-hint"></div>
+    <button class="speak-btn" onclick="speak()">🔊 听发音</button>
+  </div>
+  <div class="nav-row">
+    <button class="nav-btn" onclick="prev()">◀</button>
+    <div class="nav-counter" id="counter">1 / 6</div>
+    <button class="nav-btn" onclick="next()">▶</button>
+  </div>
+</div>
+
+<div id="quiz-panel" style="display:none">
+  <div class="quiz-card">
+    <div class="quiz-label">👀 这个单词是什么意思？</div>
+    <span class="quiz-emoji" id="q-emoji"></span>
+    <div class="quiz-opts" id="q-opts"></div>
+    <div class="feedback" id="q-fb"></div>
+  </div>
+</div>
+
+<script>
+const data = {
+  animals: [
+    { e:'🐱', w:'CAT', z:'猫咪', h:'Meow meow!' },
+    { e:'🐶', w:'DOG', z:'小狗', h:'Woof woof!' },
+    { e:'🐰', w:'RABBIT', z:'兔子', h:'Hop hop hop!' },
+    { e:'🐸', w:'FROG', z:'青蛙', h:'Ribbit ribbit!' },
+    { e:'🦋', w:'BUTTERFLY', z:'蝴蝶', h:'So beautiful!' },
+    { e:'🐟', w:'FISH', z:'小鱼', h:'Swim swim swim!' },
+  ],
+  fruits: [
+    { e:'🍎', w:'APPLE', z:'苹果', h:'A is for Apple!' },
+    { e:'🍌', w:'BANANA', z:'香蕉', h:'Monkeys love it!' },
+    { e:'🍓', w:'STRAWBERRY', z:'草莓', h:'So sweet!' },
+    { e:'🍊', w:'ORANGE', z:'橙子', h:'Orange color!' },
+    { e:'🍇', w:'GRAPE', z:'葡萄', h:'Purple grapes!' },
+    { e:'🍉', w:'WATERMELON', z:'西瓜', h:'Summer fruit!' },
+  ],
+  colors: [
+    { e:'❤️', w:'RED', z:'红色', h:'Red like an apple!' },
+    { e:'💛', w:'YELLOW', z:'黄色', h:'Yellow like the sun!' },
+    { e:'💙', w:'BLUE', z:'蓝色', h:'Blue like the sky!' },
+    { e:'💚', w:'GREEN', z:'绿色', h:'Green like grass!' },
+    { e:'🟣', w:'PURPLE', z:'紫色', h:'Purple like grapes!' },
+    { e:'🟠', w:'ORANGE', z:'橙色', h:'Orange like a sunset!' },
+  ],
+  body: [
+    { e:'👁️', w:'EYE', z:'眼睛', h:'I see with my eyes!' },
+    { e:'👂', w:'EAR', z:'耳朵', h:'I hear with my ears!' },
+    { e:'👃', w:'NOSE', z:'鼻子', h:'I smell with my nose!' },
+    { e:'👄', w:'MOUTH', z:'嘴巴', h:'I eat with my mouth!' },
+    { e:'✋', w:'HAND', z:'手', h:'Clap your hands!' },
+    { e:'🦶', w:'FOOT', z:'脚', h:'Stamp your feet!' },
+  ],
+};
+const catLabels = { animals:'🐾 动物', fruits:'🍓 水果', colors:'🎨 颜色', body:'👀 身体' };
+
+let cat = 'animals', idx = 0, learned = {}, tab = 'learn', quizLock = false;
+
+function init() {
+  const el = document.getElementById('cats');
+  el.innerHTML = Object.keys(data).map(k =>
+    `<div class="cat-btn${k===cat?' active':''}" onclick="selCat('${k}')">${catLabels[k]}</div>`
+  ).join('');
+  render();
+}
+
+function selCat(c) {
+  cat = c; idx = 0;
+  document.querySelectorAll('.cat-btn').forEach((b,i) => b.classList.toggle('active', Object.keys(data)[i]===c));
+  render();
+  if (tab==='quiz') genQuiz();
+}
+
+function render() {
+  const items = data[cat], item = items[idx];
+  document.getElementById('emoji').textContent = item.e;
+  document.getElementById('word-en').textContent = item.w;
+  document.getElementById('word-zh').textContent = item.z;
+  document.getElementById('word-hint').textContent = item.h;
+  document.getElementById('counter').textContent = `${idx+1} / ${items.length}`;
+  if (!learned[cat]) learned[cat] = new Set();
+  learned[cat].add(idx);
+  const done = learned[cat].size, total = items.length;
+  document.getElementById('progress').style.width = (done/total*100) + '%';
+  document.getElementById('stars').innerHTML = items.map((_,i) =>
+    `<span class="star${(learned[cat]&&learned[cat].has(i))?' lit':''}">⭐</span>`
+  ).join('');
+}
+
+function next() { idx = (idx+1) % data[cat].length; render(); }
+function prev() { idx = (idx-1+data[cat].length) % data[cat].length; render(); }
+
+function speak() {
+  const w = data[cat][idx].w;
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(w.toLowerCase());
+    u.lang = 'en-US'; u.rate = 0.8;
+    window.speechSynthesis.speak(u);
+  }
+}
+
+function switchTab(t) {
+  tab = t;
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', ['learn','quiz'][i]===t));
+  document.getElementById('learn-panel').style.display = t==='learn' ? '' : 'none';
+  document.getElementById('quiz-panel').style.display = t==='quiz' ? '' : 'none';
+  if (t==='quiz') genQuiz();
+}
+
+function genQuiz() {
+  quizLock = false;
+  const items = data[cat];
+  const ci = Math.floor(Math.random()*items.length);
+  const correct = items[ci];
+  document.getElementById('q-emoji').textContent = correct.e;
+  document.getElementById('q-fb').textContent = '';
+  document.getElementById('q-fb').className = 'feedback';
+  let opts = [correct];
+  const pool = items.filter((_,i) => i!==ci);
+  while(opts.length<4 && pool.length>0) {
+    const ri = Math.floor(Math.random()*pool.length);
+    opts.push(pool.splice(ri,1)[0]);
+  }
+  opts = opts.sort(() => Math.random()-0.5);
+  document.getElementById('q-opts').innerHTML = opts.map(o =>
+    `<div class="quiz-opt" onclick="check(this,'${o.w}','${correct.w}')">${o.w}<span class="opt-zh">${o.z}</span></div>`
+  ).join('');
+}
+
+function check(el, chosen, correct) {
+  if (quizLock) return; quizLock = true;
+  const fb = document.getElementById('q-fb');
+  if (chosen===correct) {
+    el.classList.add('correct');
+    fb.textContent = '🎉 太棒了！答对啦！';
+    fb.className = 'feedback ok';
+  } else {
+    el.classList.add('wrong');
+    fb.textContent = '😊 再想想！正确答案是 ' + correct;
+    fb.className = 'feedback no';
+    document.querySelectorAll('.quiz-opt').forEach(b => { if(b.textContent.startsWith(correct)) b.classList.add('correct'); });
+  }
+  setTimeout(genQuiz, 2200);
+}
+
+init();
+</script>
+</body>
+</html>
